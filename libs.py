@@ -145,7 +145,7 @@ class Bitmap(object):
             startOfY = -1
             dy = -dy
         
-        Directriz = 2*dy - dx
+        directriz = 2*dy - dx
         y = y1
 
         for x in range(x1, x2):  
@@ -154,11 +154,11 @@ class Bitmap(object):
             normX = self.getNormXCoord(x)
             normY = self.getNormYCoord(y)
             self.vertex(normX, normY)
-            if (Directriz > 0):
+            if (directriz > 0):
                 y = y + startOfY
-                Directriz = Directriz - (2*dx)
+                directriz = directriz - (2*dx)
             
-            Directriz = Directriz + (2*dy)
+            directriz = directriz + (2*dy)
 
     def lineTop(self, x1, y1, x2, y2, coords):
         dx = x2 - x1
@@ -169,7 +169,7 @@ class Bitmap(object):
             startOfX = -1
             dx = -dx
         
-        Directriz = (2*dx) - dy
+        directriz = (2*dx) - dy
         x = x1
 
         for y in range(y1, y2):  
@@ -178,11 +178,11 @@ class Bitmap(object):
             normX = self.getNormXCoord(x)
             normY = self.getNormYCoord(y)    
             self.vertex(normX, normY )
-            if (Directriz > 0):
+            if (directriz > 0):
                 x = x + startOfX
-                Directriz = Directriz - 2*dy
+                directriz = directriz - 2*dy
             
-            Directriz = Directriz + 2*dx
+            directriz = directriz + 2*dx
 
     def line(self, x1, y1, x2, y2, coords):
 
