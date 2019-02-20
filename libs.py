@@ -1,5 +1,6 @@
 import struct
 import math
+from obj_loader import obj_loader
 
 def char(c):
     return struct.pack("=c", c.encode('ascii'))
@@ -91,20 +92,6 @@ class Bitmap(object):
         self.xViewPort = x
         self.yViewPort = y
     
-    def getRXCoord(self, x):
-        print("valor en x viewport" , x)
-        dx = x * (self.viewPortWidth / 2)
-        realXVP = (self.viewPortWidth / 2) + dx
-        print("valor de viewport x ", self.xViewPort)
-        realX = realXVP + self.xViewPort
-        return realX
-
-    def getRYCoord(self, y):
-        dy = y * (self.viewPortHeight / 2)
-        realYVP = (self.viewPortHeight / 2) + dy
-        realY = realYVP + self.yViewPort
-        return realY
-
     def getNormXCoord(self, realX):
         realXVP = realX - self.xViewPort
         dx = realXVP - (self.viewPortWidth / 2)
@@ -117,7 +104,6 @@ class Bitmap(object):
         y = dy / (self.viewPortHeight / 2)
         return y
 
-    # create new canvas to draw image 
     def vertex(self, x, y):
         if ((x >= -1 and x <= 1) and (y >= -1 and y <= 1)):
             # x           
@@ -132,14 +118,11 @@ class Bitmap(object):
             realX = realXVP + self.xViewPort
             realY = realYVP + self.yViewPort       
 
-            # draw inside dimensions 
             if ((realX <= self.width) and (realY <= self.height)):
                 if (realX == self.width):
                     realX = self.width - 1
                 if (realY == self.height): 
                     realY = self.height - 1
-                    print("x" , realX)
-                    print("y", realY)
                 self.framebuffer[math.floor(realY)][math.floor(realX)] = self.newGlColor
 
     def color(self, r, g, b):
@@ -153,44 +136,113 @@ class Bitmap(object):
     def point(self, x, y):
         self.framebuffer[int(y)][int(x)] = self.newGlColor
 
-    def line (self, x1, y1, x2, y2): 
+    def lineBotton(self, x1, y1, x2, y2, cords):
+        dx = x2 - x1
+        dy = y2 - y1
+        startOfY = 1
 
-        print(x1 , "valor x1")
-        print(y1, "valor y1 ")
+        if (dy < 0):
+            startOfY = -1
+            dy = -dy
         
-        x1 = math.floor(self.getRXCoord(x1))
-        x2 = math.floor(self.getRXCoord(x2))
-        y1 = math.floor(self.getRYCoord(y1))
-        y2 = math.floor(self.getRYCoord(y2))
+        Directriz = 2*dy - dx
+        y = y1
 
-        dy = abs(y2 - y1) 
-        dx = abs(x2 - x1) 
+        for x in range(x1, x2):  
+            vertex = [x, y]
+            self.thisPolygon.append(vertex)
+            normX = self.getNormXCoord(x)
+            normY = self.getNormYCoord(y)
+            self.vertex(normX, normY)
+            if (Directriz > 0):
+                y = y + startOfY
+                Directriz = Directriz - (2*dx)
+            
+            Directriz = Directriz + (2*dy)
 
-        steep = dy > dx 
+    def lineTop(self, x1, y1, x2, y2, coords):
+        dx = x2 - x1
+        dy = y2 - y1
+        startOfX = 1
 
-        if steep: 
-            x1, y1 = y1 , x1 
-            x2, y2  = y2, x2 
+        if (dx < 0):
+            startOfX = -1
+            dx = -dx
+        
+        Directriz = (2*dx) - dy
+        x = x1
 
-        if  x1 > x2: 
-            x1,x2 = x2, x1 
-            y1, y2 = y2, y1
+        for y in range(y1, y2):  
+            vertex = [x, y]
+            self.thisPolygon.append(vertex)     
+            normX = self.getNormXCoord(x)
+            normY = self.getNormYCoord(y)    
+            self.vertex(normX, normY )
+            if (Directriz > 0):
+                x = x + startOfX
+                Directriz = Directriz - 2*dy
+            
+            Directriz = Directriz + 2*dx
 
-        dy = abs(y2 - y1)  
-        dx = abs(x2 - x1)  
+    def line(self, x1, y1, x2, y2, coords):
 
-        offset = 0  * 2 * dx
-        threshold = 0.5 * 2 * dx
+        if abs(y2 - y1) < abs(x2 - x1):
+            if (x1 > x2):
+                self.lineBotton(x2, y2, x1, y1, coords)
+            else:
+                self.lineBotton(x1, y1, x2, y2, coords)
+        else:
+            if (y1 > y2):
+                self.lineTop(x2, y2, x1, y1, coords)
+            else:
+                self.lineTop(x1, y1, x2, y2, coords)
+ 
+    def loadObj(self, filename, coords):
+        
+        model = obj_loader(filename)
+        countOfVertices = len(model.vertices)
+        self.thisPolygon = []
 
-        y = y1 
+        for j in range(1, countOfVertices):
+            vertex1 = model.vertices[j - 1]
+            vertex2 = model.vertices[j]
 
-        for x in range (x1,x2 +1): 
-            if steep:    
-                self.point(y, x)
-            else: 
-                self.point(x, y)
+            x1 = vertex1[0]
+            y1 = vertex1[1]
+            x2 = vertex2[0]
+            y2 = vertex2[1]
 
-            offset += dy * 2
-            if offset >= threshold: 
-                y += 1 if y1 < y2 else -1 
-                threshold += 1 * 2 * dx
+            self.line(x1, y1, x2, y2, coords)
+
+        vertex1 = model.vertices[countOfVertices - 1]
+        vertex2 = model.vertices[0]
+
+        x1 = vertex1[0]
+        y1 = vertex1[1]
+        x2 = vertex2[0]
+        y2 = vertex2[1]
+
+        self.line(x1, y1, x2, y2, coords)
+        
+        xCoords = []
+
+        for vertex in self.thisPolygon:         
+            xCoords.append(vertex[0])                        
+
+        xMax = max(xCoords)
+        xMin = min(xCoords)
+
+        for y in range (xMin, xMax):
+            vertices = list(filter(lambda x: x[0] == y, self.thisPolygon))
+            listV = len(vertices)
+
+            for k in range(1, listV, 1):
+                vertex1 = vertices[k - 1]
+                vertex2 = vertices[k]
+
+                x1 = vertex1[0]
+                y1 = vertex1[1]
+                x2 = vertex2[0]
+                y2 = vertex2[1]
+
+                self.line(x1, y1, x2, y2, False)
