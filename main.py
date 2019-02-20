@@ -1,7 +1,5 @@
 import libs 
 import struct
-import math
-import os 
 from libs import Bitmap
 from libs import word
 
@@ -20,6 +18,7 @@ def glCreateWindow(width, height):
 #Delete actual image 
 def glClear(): 
     img.clear()
+
 #Image area can draw
 def glViewPort(x,y,widht, height):
     img.viewPort(x,y,widht, height)
@@ -36,29 +35,25 @@ def glClearColor(r,g,b):
 def glVertex(x,y):
     img.vertex(x,y)
 
-def getNewX(x): 
-    return img.getNormXCoord(x)
-
-def getNewY(y): 
-    return img.getNormYCoord(y)
-
-def glLine (x1,y1, x2,y2):
-    img.line(x1, y1, x2, y2)
+def glLoadOb(filename, get_coords): 
+    img.loadObj(filename, get_coords)
 
 #Show new image 
 def glFinish():
-    img.writeFile("img.bmp")
+    img.writeFile("polygon.bmp")
 
 
 
-glCreateWindow(800,600)
-glViewPort(0,0,799,599)
+glCreateWindow(1000,800)
+glViewPort(0,0,1000,800)
 glClear()
-glColor(1, 0, 0)
+glColor(1, 1, 1)
 glVertex(0,0)
-glLine(getNewX(10),getNewY(10),getNewX(510),getNewY(10))
-glLine(getNewX(10),getNewY(10),getNewX(462),getNewY(191))
-glLine(getNewX(10),getNewY(10),getNewX(354),getNewY(354))
-glLine(getNewX(10),getNewY(10),getNewX(191),getNewY(462))
-glLine(getNewX(10),getNewY(10),getNewX(10),getNewY(510))
+glLoadOb('pol1.pol', True)
+glLoadOb('pol2.pol', True)
+glLoadOb('pol3.pol', True)
+glLoadOb('pol4.pol', True)
+glColor(0, 0, 0)
+glLoadOb('pol5.pol', True)
+print('Se ha generado el objeto')
 glFinish()

@@ -4,12 +4,12 @@ class obj_loader(object):
         self.faces = []
 
         with open(filename) as f:
-            self.document_lines = f.read().splitlines()
+            self.documentLines = f.read().splitlines()
 
         self.read()
 
     def read(self):
-        for line in self.document_lines:
+        for line in self.documentLines:
             if line:
                 prefix, value = line.split(' ', 1)
 
